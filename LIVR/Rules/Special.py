@@ -25,11 +25,11 @@ class Email(object):
     
     @basic_check
     def __call__(self, email=None, unuse=None, unuse_=None):
-        if not re.match(self._reg_exp_mail, str(email), re.IGNORECASE):
+        if not re.match(self._reg_exp_mail, constants.TO_STRING(email), re.IGNORECASE):
             return 'WRONG_EMAIL'
-        if re.match(r'\@.*\@', str(email)):
+        if re.match(r'\@.*\@', constants.TO_STRING(email)):
             return 'WRONG_EMAIL'
-        if re.match(r'\@.*_', str(email)):
+        if re.match(r'\@.*_', constants.TO_STRING(email)):
             return 'WRONG_EMAIL'
 
 

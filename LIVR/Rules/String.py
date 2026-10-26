@@ -9,8 +9,8 @@ except ImportError:
 
 def base_string_check(func):
     def dec(obj, value, unuse, output):
-        if isinstance(value, (int, float)):
-            value = str(value)
+        if isinstance(value, constants.NUMBER_LIST):
+            value = constants.TO_STRING(value)
         if constants.EMPTY_PRIMITIVE(value):
             return
         if not isinstance(value, constants.PRIMITIVE_LIST):
@@ -29,7 +29,7 @@ class OneOf(object):
     @base_string_check
     def __call__(self, value, unuse, output):
         for val in self._allowed_list:
-            if str(value) == str(val):
+            if constants.TO_STRING(value) == constants.TO_STRING(val):
                 output.append(val)
                 return
         return 'NOT_ALLOWED_VALUE'
@@ -93,7 +93,7 @@ class Like(object):
 
     @base_string_check
     def __call__(self, value, unuse, output):
-        if not re.match(self._sample, str(value), re.I if self._flag == 'i' else re.U):
+        if not re.match(self._sample, constants.TO_STRING(value), re.U | (re.I if self._flag == 'i' else 0)):
             return 'WRONG_FORMAT'
         output.append(value)
 
@@ -103,7 +103,7 @@ class Eq(object):
 
     @base_string_check
     def __call__(self, value, unuse, output):
-        if str(self._allowed_value) == str(value):
+        if constants.TO_STRING(self._allowed_value) == constants.TO_STRING(value):
             output.append(self._allowed_value)
             return
         return 'NOT_ALLOWED_VALUE'
