@@ -8,6 +8,66 @@ sys.path.insert(0,PATH_TO_VALIDATOR)
 import Validator
 
 
+class TestAutoTrim(unittest.TestCase):
+    def setUp(self):
+        self.validator = Validator.Validator({
+            'code': 'required',
+            'password': ['required', {'min_length': 3}],
+            'list': {'list_of': ['string']},
+            'address': {'nested_object': {
+                'street': {'min_length': 5}
+            }}
+        }, True)
+
+    def test_negative(self):
+        output = self.validator.validate({
+            'code': '  ',
+            'password': ' 12  ',
+            'address': {'street': '  hell '}
+        })
+
+        self.assertFalse(output)
+        self.assertEqual(self.validator.get_errors(), {
+            'code': 'REQUIRED',
+            'password': 'TOO_SHORT',
+            'address': {'street': 'TOO_SHORT'}
+        })
+
+    def test_positive(self):
+        output = self.validator.validate({
+            'code': ' A ',
+            'password': ' 123  ',
+            'list': [' aaa ', ' bbb '],
+            'address': {'street': '  hello '}
+        })
+
+        self.assertEqual(output, {
+            'code': 'A',
+            'password': '123',
+            'list': ['aaa', 'bbb'],
+            'address': {'street': 'hello'}
+        })
+
+    def test_default_auto_trim(self):
+        Validator.Validator.set_default_auto_trim(True)
+        try:
+            output = Validator.Validator({'code': 'required'}).validate({'code': ' A '})
+        finally:
+            Validator.Validator.set_default_auto_trim(False)
+
+        self.assertEqual(output, {'code': 'A'})
+        self.assertEqual(Validator.Validator({'code': 'required'}).validate({'code': ' A '}), {'code': ' A '})
+
+
+class TestNotObjectInput(unittest.TestCase):
+    def test_not_object(self):
+        validator = Validator.Validator({'code': 'required'})
+
+        for data in ['code', ['code'], None]:
+            self.assertEqual(validator.validate(data), False)
+            self.assertEqual(validator.get_errors(), 'FORMAT_ERROR')
+
+
 class TestLike(unittest.TestCase):
     def test_not_anchored(self):
         validator = Validator.Validator({'code': {'like': '[0-9]+'}})
