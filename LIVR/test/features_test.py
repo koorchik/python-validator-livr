@@ -8,6 +8,13 @@ sys.path.insert(0,PATH_TO_VALIDATOR)
 import Validator
 
 
+class TestLike(unittest.TestCase):
+    def test_not_anchored(self):
+        validator = Validator.Validator({'code': {'like': '[0-9]+'}})
+
+        self.assertEqual(validator.validate({'code': 'abc123'}), {'code': 'abc123'})
+
+
 # Python 2 has unicode strings, long integers and shorter str() of floats
 class TestPython2(unittest.TestCase):
     def test_unicode_characters(self):

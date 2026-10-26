@@ -4,7 +4,7 @@ try:
 except ImportError:
     from . import constants
 
-ESCAPE_RE = lambda string: string.replace('[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]', "\\$&")
+ESCAPE_RE = lambda string: re.escape(string)
 
 class Default(object):
     def __init__(self, *args):

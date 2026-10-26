@@ -93,7 +93,7 @@ class Like(object):
 
     @base_string_check
     def __call__(self, value, unuse, output):
-        if not re.match(self._sample, constants.TO_STRING(value), re.U | (re.I if self._flag == 'i' else 0)):
+        if not re.search(self._sample, constants.TO_STRING(value), re.U | (re.I if self._flag == 'i' else 0)):
             return 'WRONG_FORMAT'
         output.append(value)
 
