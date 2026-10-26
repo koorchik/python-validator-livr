@@ -59,6 +59,47 @@ class TestAutoTrim(unittest.TestCase):
         self.assertEqual(Validator.Validator({'code': 'required'}).validate({'code': ' A '}), {'code': ' A '})
 
 
+class PatchedRule(object):
+    def __init__(self, rule_name, rule_builder):
+        self._rule_name = rule_name
+        self._rule_builder = rule_builder
+
+    def __call__(self, *args):
+        rule_validator = self._rule_builder(*args)
+        rule = {self._rule_name: list(args[1:])}
+
+        def validate(*params):
+            error_code = rule_validator(*params)
+            if error_code:
+                return {'code': error_code, 'rule': rule}
+        return validate
+
+
+class TestRulesReplacement(unittest.TestCase):
+    def test_replace_default_rules(self):
+        original_rules = dict(Validator.Validator.get_default_rules())
+        new_rules = {}
+
+        for name, rule_builder in original_rules.items():
+            new_rules[name] = PatchedRule(name, rule_builder)
+
+        Validator.Validator.register_default_rules(new_rules)
+        try:
+            validator = Validator.Validator({
+                'name': ['required'],
+                'phone': {'max_length': 10}
+            })
+            output = validator.validate({'phone': '123456789123456'})
+        finally:
+            Validator.Validator.register_default_rules(original_rules)
+
+        self.assertFalse(output)
+        self.assertEqual(validator.get_errors(), {
+            'name': {'code': 'REQUIRED', 'rule': {'required': []}},
+            'phone': {'code': 'TOO_LONG', 'rule': {'max_length': [10]}}
+        })
+
+
 class TestNotObjectInput(unittest.TestCase):
     def test_not_object(self):
         validator = Validator.Validator({'code': 'required'})

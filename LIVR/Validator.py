@@ -22,6 +22,10 @@ class Validator(internal_reactor.InternalValidator):
             DEFAULT_RULES.DEFAULT_RULES[name] = rule
 
     @staticmethod
+    def get_default_rules():
+        return DEFAULT_RULES.DEFAULT_RULES
+
+    @staticmethod
     def register_aliased_default_rule(alias):
         BuildAliasedRule.BuildAliasedRule(DEFAULT_RULES.DEFAULT_RULES, alias)
 
