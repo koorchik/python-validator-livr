@@ -83,9 +83,42 @@ class BetweenLength(object):
             return 'TOO_SHORT'
         output.append(value)
 
+def whole_value_end(pattern):
+    # LIVR patterns follow JavaScript, where $ matches only at the end of the value.
+    # In Python it also matches before a trailing newline, so "12345\n" would match
+    # "^[0-9]{5}$". Replaces $ outside character classes with \Z.
+    result = []
+    in_class = False
+    i = 0
+    while i < len(pattern):
+        char = pattern[i]
+        if char == '\\':
+            result.append(pattern[i:i + 2])
+            i += 2
+            continue
+        if in_class:
+            if char == ']':
+                in_class = False
+        elif char == '[':
+            in_class = True
+            # "]" right after "[" or "[^" is a literal, not the end of the class
+            if pattern[i + 1:i + 2] == '^':
+                result.append(char)
+                i += 1
+                char = '^'
+            if pattern[i + 1:i + 2] == ']':
+                result.append(char)
+                i += 1
+                char = ']'
+        elif char == '$':
+            char = '\\Z'
+        result.append(char)
+        i += 1
+    return ''.join(result)
+
 class Like(object):
     def __init__(self, *args):
-        self._sample = args[1]
+        self._sample = whole_value_end(args[1])
         try:
             self._flag = str(args[2]).lower()
         except:

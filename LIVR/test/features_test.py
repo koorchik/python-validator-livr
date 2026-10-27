@@ -115,6 +115,27 @@ class TestLike(unittest.TestCase):
 
         self.assertEqual(validator.validate({'code': 'abc123'}), {'code': 'abc123'})
 
+    def test_end_of_value(self):
+        validator = Validator.Validator({
+            'zip1': {'like': '^[0-9]{5}$'},
+            'zip2': {'like': ['^[0-9]{5}$', 'i']},
+            'zip3': {'like': '^[0-9]{5}$'}
+        })
+        output = validator.validate({'zip1': '12345\n', 'zip2': '12345\n', 'zip3': '12345'})
+
+        self.assertFalse(output)
+        self.assertEqual(validator.get_errors(), {'zip1': 'WRONG_FORMAT', 'zip2': 'WRONG_FORMAT'})
+
+    def test_literal_dollar(self):
+        validator = Validator.Validator({
+            'price': {'like': '^\\$[0-9]+$'},
+            'chars': {'like': '^[$^]+$'},
+            'bracket': {'like': '^[]$]+$'}
+        })
+        output = validator.validate({'price': '$10', 'chars': '$^$', 'bracket': ']$'})
+
+        self.assertEqual(output, {'price': '$10', 'chars': '$^$', 'bracket': ']$'})
+
 
 # Python 2 has unicode strings, long integers and shorter str() of floats
 class TestPython2(unittest.TestCase):
